@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QList>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,14 +25,25 @@ public:
 private:
     Ui::MainWindow *ui;
     int ctrl_state;
+    QString section;
     QSettings *settings;
     QPushButton *cmdbtn;
+    QClipboard *clipboard;
+    QList<QPushButton*> btn_list;
 
-    void creat_commandui();
-    void creat_button();
+    void flush_ui();
     void creat_tab();
+    void creat_button();
+    void creat_commandui();
+
 protected:
-//    virtual void keyPressEvent(QKeyEvent *ev);
-//    virtual void keyReleaseEvent(QKeyEvent *ev);
+    virtual void keyPressEvent(QKeyEvent *ev);
+    virtual void keyReleaseEvent(QKeyEvent *ev);
+
+private slots:
+    void on_horizontalSlider_sliderMoved(int position);
+    void on_tabWidget_currentChanged(int index);
+    void on_pushCmdButton_clicked();
+    void on_tabWidget_tabBarDoubleClicked(int index);
 };
 #endif // MAINWINDOW_H
