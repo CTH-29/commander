@@ -169,3 +169,15 @@ void MainWindow::on_tabWidget_tabBarDoubleClicked(int index)
         settings->setValue("BaseInfo/tapname" + QString::number(index + 1), this->ui->lineEdit->text());
     }
 }
+
+void MainWindow::on_toolButton_clicked()
+{
+    QMessageBox::warning(this,"source code","https://github.com/Savior2016/commander\n"
+                         "(github address already copy to the clipboard)\n"
+                         "\n"
+                         "click: copy cmd to clipboard\n"
+                         "ctrl + click: save cmd to button\n"
+                         "ctrl + double click tap: change tap name\n"
+                         ,QMessageBox::Yes);
+   clipboard->setText("https://github.com/Savior2016/commander");
+}

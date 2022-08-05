@@ -45,5 +45,6 @@ private slots:
     void on_tabWidget_currentChanged(int index);
     void on_pushCmdButton_clicked();
     void on_tabWidget_tabBarDoubleClicked(int index);
+    void on_toolButton_clicked();
 };
 #endif // MAINWINDOW_H
