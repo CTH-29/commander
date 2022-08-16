@@ -20,6 +20,10 @@ MainWindow::MainWindow(QWidget *parent)
     this->creat_commandui();
 
     clipboard = QApplication::clipboard();
+
+    connect(ui->actionOnTop, SIGNAL(triggered()), this, SLOT(set_fixOnTop()));
+    connect(ui->actionShow, SIGNAL(triggered()), this, SLOT(set_Textedit_Visible()));
+    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(creat_aboutWindows()));
 }
 
 MainWindow::~MainWindow()
@@ -98,9 +102,36 @@ void MainWindow::flush_ui()
    }
 }
 
+void MainWindow::set_Textedit_Visible()
+{
+    static bool visiable;
+
+    this->ui->lineEdit->setVisible(visiable);
+    this->ui->textEdit->setVisible(visiable);
+    visiable = !visiable;
+}
+void MainWindow::set_fixOnTop()
+{
+    this->setWindowFlags(this->windowFlags() ^ Qt::WindowStaysOnTopHint);
+    this->show();
+}
+
+void MainWindow::creat_aboutWindows()
+{
+    QMessageBox::information(this,"source code","https://github.com/Savior2016/commander\n"
+                         "(github address already copy to the clipboard)\n"
+                         "\n"
+                         "click: copy cmd to clipboard\n"
+                         "ctrl + click: save cmd to button\n"
+                         "ctrl + double click tap: change tap name\n"
+                         ,QMessageBox::Yes);
+    clipboard->setText("https://github.com/Savior2016/commander");
+}
+
 void MainWindow::on_horizontalSlider_sliderMoved(int position)
 {
-    setWindowOpacity(position/100.0);
+    double val = position/80.0 + 0.2;
+    setWindowOpacity(val);
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)
@@ -170,14 +201,3 @@ void MainWindow::on_tabWidget_tabBarDoubleClicked(int index)
     }
 }
 
-void MainWindow::on_toolButton_clicked()
-{
-    QMessageBox::warning(this,"source code","https://github.com/Savior2016/commander\n"
-                         "(github address already copy to the clipboard)\n"
-                         "\n"
-                         "click: copy cmd to clipboard\n"
-                         "ctrl + click: save cmd to button\n"
-                         "ctrl + double click tap: change tap name\n"
-                         ,QMessageBox::Yes);
-   clipboard->setText("https://github.com/Savior2016/commander");
-}

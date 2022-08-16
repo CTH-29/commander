@@ -41,10 +41,13 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent *ev);
 
 private slots:
+    void creat_aboutWindows();
+    void set_Textedit_Visible();
+    void set_fixOnTop();
     void on_horizontalSlider_sliderMoved(int position);
     void on_tabWidget_currentChanged(int index);
     void on_pushCmdButton_clicked();
     void on_tabWidget_tabBarDoubleClicked(int index);
-    void on_toolButton_clicked();
+
 };
 #endif // MAINWINDOW_H
