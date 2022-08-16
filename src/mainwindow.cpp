@@ -14,16 +14,23 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     this->ctrl_state = 0;
 
     settings=new QSettings("commander.ini", QSettings::IniFormat);
-    this->creat_commandui();
 
     clipboard = QApplication::clipboard();
 
     connect(ui->actionOnTop, SIGNAL(triggered()), this, SLOT(set_fixOnTop()));
     connect(ui->actionShow, SIGNAL(triggered()), this, SLOT(set_Textedit_Visible()));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(creat_aboutWindows()));
+
+    this->bt_width = 120;
+    this->bt_height = 30;
+
+    this->create_tab();
+    this->create_button();
+    this->setWindowFlags(this->windowFlags()&~Qt::WindowMinMaxButtonsHint);
 }
 
 MainWindow::~MainWindow()
@@ -31,31 +38,13 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::creat_commandui()
+void MainWindow::resizeEvent(QResizeEvent *event)
 {
-    this->creat_button();
-    this->creat_tab();
-    this->flush_ui();
+    Q_UNUSED(event);
+    resize_button(this->size());
 }
 
-void MainWindow::creat_button()
-{
-   int num;
-
-   for (num = 0; num < CMD_BTN_NUM; num++) {
-       cmdbtn = new QPushButton(this);
-       cmdbtn->setParent(this->ui->tabWidget);
-       cmdbtn->setGeometry(CMD_BTN_X + (CMD_BTN_GAP + CMD_BTN_W) * (num % CMD_BTN_LINE_NUM),
-                           CMD_BTN_Y + (CMD_BTN_GAP + CMD_BTN_H) * (num / CMD_BTN_LINE_NUM),
-                           CMD_BTN_W, CMD_BTN_H);
-       cmdbtn->setObjectName("cmd"+QString::number((num)));
-       connect(cmdbtn, SIGNAL(clicked()), this, SLOT(on_pushCmdButton_clicked()));
-       btn_list.append(cmdbtn);
-       cmdbtn->show();
-   }
-}
-
-void MainWindow::creat_tab()
+void MainWindow::create_tab()
 {
     int i;
     int tap_num;
@@ -74,32 +63,58 @@ void MainWindow::creat_tab()
         QString tap_name = settings->value("BaseInfo/tapname" + QString::number(i + 1)).toString();
         this->ui->tabWidget->setTabText(i, tap_name);
     }
+
+    this->section = settings->value("BaseInfo/tapname1").toString();
 }
 
-void MainWindow::flush_ui()
+void MainWindow::create_button()
 {
-    int i;
-    int tap_num;
-    int tap_current;
+    btn_list.clear();
+    this->bt_cnt_now = settings->value(this->section+"/cmdcnt").toInt();
+    for (int num = 0; num < this->bt_cnt_now; num++) {
+        cmdbtn = new QPushButton(this);
+        cmdbtn->setParent(this->ui->tabWidget);
+        cmdbtn->setObjectName("cmd"+QString::number((num)));
+        cmdbtn->setText(settings->value(this->section + "/" + "cmd" + QString::number(num)+"_k").toString());
+        cmdbtn->setStatusTip(settings->value(this->section + "/" + "cmd" + QString::number(num)+"_V").toString());
+        connect(cmdbtn, SIGNAL(clicked()), this, SLOT(on_pushCmdButton_clicked()));
+        btn_list.append(cmdbtn);
+        cmdbtn->show();
+    }
+    resize_button(this->size());
+}
 
-    /* Flash taps. */
+#define BT_EDGE_X 20
+#define BT_EDGE_Y 30
+#define BT_GAP_X 4
+#define BT_GAP_Y 4
 
-    tap_num = settings->value("BaseInfo/tapnum").toInt();
+void MainWindow::resize_button(QSize size)
+{
+    qDebug()<<"w="<<size.width()<<"h"<<size.height()<<endl;
 
-    for (i = 0; i < tap_num; i++) {
-        QString tap_name = settings->value("BaseInfo/tapname" + QString::number(i + 1)).toString();
-        this->ui->tabWidget->setTabText(i, tap_name);
+    int cnt_per_line = (size.width() - BT_EDGE_X*2)/(this->bt_width + BT_GAP_X);
+    cnt_per_line = cnt_per_line < 1 ? 1 : cnt_per_line;
+    int bt_tmp_width = (size.width() - BT_EDGE_X*2 - (cnt_per_line-1)*BT_GAP_X) / cnt_per_line;
+
+    for (int num = 0; num < this->bt_cnt_now; num++) {
+        btn_list.at(num)->setGeometry(BT_EDGE_X + (bt_tmp_width    + BT_GAP_X) * (num%cnt_per_line)-10,\
+                                      BT_EDGE_Y + (this->bt_height + BT_GAP_Y) * (num/cnt_per_line),\
+                                      bt_tmp_width ,this->bt_height);
     }
 
-    /* Flash buttons. */
+    this->ui->tabWidget->update();
+}
 
-    tap_current = this->ui->tabWidget->currentIndex();
-    this->section = "Tap" + QString::number(tap_current + 1);
 
-   for (i = 0; i < CMD_BTN_NUM; i++) {
-       QString btn_name = settings->value(this->section + "/" + btn_list.at(i)->objectName()+"_k").toString();
-       btn_list.at(i)->setText(btn_name);
-   }
+
+void MainWindow::flush_ui(int index)
+{
+
+    this->section = settings->value("BaseInfo/tapname"+QString::number(index + 1)).toString();
+    this->bt_cnt_now = settings->value(this->section+"/cmdcnt").toInt();
+    create_button();
+    qDebug()<<"section:"<<this->section<< " bt_cnt_now:" << this->bt_cnt_now << endl;;
 }
 
 void MainWindow::set_Textedit_Visible()
@@ -137,7 +152,7 @@ void MainWindow::on_horizontalSlider_sliderMoved(int position)
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     qDebug()<<"tap index"<<index<<endl;
-    this->flush_ui();
+    this->flush_ui(index);
 }
 
 void MainWindow::on_pushCmdButton_clicked()
@@ -166,9 +181,10 @@ void MainWindow::on_pushCmdButton_clicked()
     if (this->ctrl_state == 1) {
         settings->setValue(btn_key, this->ui->lineEdit->text());
         settings->setValue(btn_cmd, this->ui->textEdit->toPlainText());
-        this->flush_ui();
+        this->flush_ui(this->ui->tabWidget->currentIndex());
     } else {
         clipboard->setText(cmd_value);
+        this->ui->statusbar->showMessage("copied",1000);
     }
 }
 

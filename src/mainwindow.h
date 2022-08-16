@@ -31,10 +31,17 @@ private:
     QClipboard *clipboard;
     QList<QPushButton*> btn_list;
 
-    void flush_ui();
-    void creat_tab();
-    void creat_button();
-    void creat_commandui();
+    int bt_width;
+    int bt_height;
+    int bt_cnt_now;
+
+
+    void create_tab();
+    void create_button();
+    void flush_ui(int index);
+
+    void resizeEvent(QResizeEvent *event);
+    void resize_button(QSize size);
 
 protected:
     virtual void keyPressEvent(QKeyEvent *ev);
