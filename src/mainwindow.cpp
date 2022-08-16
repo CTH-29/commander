@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->ctrl_state = 0;
 
-    settings=new QSettings("commander.ini", QSettings::IniFormat);
+    settings = new QSettings("commander.ini", QSettings::IniFormat);
 
     clipboard = QApplication::clipboard();
 
@@ -28,13 +28,16 @@ MainWindow::MainWindow(QWidget *parent)
     this->bt_width = 120;
     this->bt_height = 30;
 
+    this->setWindowFlags(this->windowFlags()&~Qt::WindowMinMaxButtonsHint);
+
     this->create_tab();
     this->create_button();
-    this->setWindowFlags(this->windowFlags()&~Qt::WindowMinMaxButtonsHint);
+
 }
 
 MainWindow::~MainWindow()
 {
+    delete settings;
     delete ui;
 }
 
@@ -69,6 +72,9 @@ void MainWindow::create_tab()
 
 void MainWindow::create_button()
 {
+    for (int num = 0; num < btn_list.count(); num++) {
+        btn_list.at(num)->deleteLater();
+    }
     btn_list.clear();
     this->bt_cnt_now = settings->value(this->section+"/cmdcnt").toInt();
     for (int num = 0; num < this->bt_cnt_now; num++) {
