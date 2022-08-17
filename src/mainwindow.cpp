@@ -23,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->actionOnTop, SIGNAL(triggered()), this, SLOT(set_fixOnTop()));
     connect(ui->actionShow, SIGNAL(triggered()), this, SLOT(set_Textedit_Visible()));
-    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(creat_aboutWindows()));
+    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(create_aboutWindows()));
 
     this->bt_width = 120;
     this->bt_height = 30;
@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     this->create_tab();
     this->create_button();
 
+//    this->ui->scrollArea->setLayout(new QVBoxLayout);
+//    this->ui->scrollArea->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 }
 
 MainWindow::~MainWindow()
@@ -68,6 +70,8 @@ void MainWindow::create_tab()
     }
 
     this->section = settings->value("BaseInfo/tapname1").toString();
+
+
 }
 
 void MainWindow::create_button()
@@ -76,21 +80,41 @@ void MainWindow::create_button()
         btn_list.at(num)->deleteLater();
     }
     btn_list.clear();
-    this->bt_cnt_now = settings->value(this->section+"/cmdcnt").toInt();
+    QString prefix = QString("Tap") + QString::number(this->ui->tabWidget->currentIndex()+1) + "/";
+
+    this->bt_cnt_now = settings->value(prefix + "cmdcnt").toInt();
+    if(this->bt_cnt_now <= 0)
+    {
+        this->bt_cnt_now = 20;
+        settings->setValue(prefix + "cmdcnt",20);
+    }
+
+//    if(this->scrollarea != NULL)
+//    {
+//        this->scrollarea->deleteLater();
+//    }
+//    this->ui->tabWidget->currentWidget()->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+//    this->scrollarea = new QScrollArea(this->ui->tabWidget->currentWidget());
+//    this->scrollarea->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+//    this->scrollarea->show();
+
+//    this->ui->scrollArea->setParent(this->ui->tabWidget->currentWidget());
+//    QLayout *lout = this->ui->scrollArea->layout();
+
     for (int num = 0; num < this->bt_cnt_now; num++) {
-        cmdbtn = new QPushButton(this);
-        cmdbtn->setParent(this->ui->tabWidget);
+        cmdbtn = new QPushButton(this->ui->tabWidget);
         cmdbtn->setObjectName("cmd"+QString::number((num)));
-        cmdbtn->setText(settings->value(this->section + "/" + "cmd" + QString::number(num)+"_k").toString());
-        cmdbtn->setStatusTip(settings->value(this->section + "/" + "cmd" + QString::number(num)+"_V").toString());
+        cmdbtn->setText(settings->value( prefix+"cmd" + QString::number(num)+"_k").toString());
+        cmdbtn->setStatusTip(settings->value( prefix+"cmd" + QString::number(num)+"_V").toString());
         connect(cmdbtn, SIGNAL(clicked()), this, SLOT(on_pushCmdButton_clicked()));
         btn_list.append(cmdbtn);
         cmdbtn->show();
+        //lout->addWidget(cmdbtn);
     }
     resize_button(this->size());
 }
 
-#define BT_EDGE_X 20
+#define BT_EDGE_X 30
 #define BT_EDGE_Y 30
 #define BT_GAP_X 4
 #define BT_GAP_Y 4
@@ -104,7 +128,7 @@ void MainWindow::resize_button(QSize size)
     int bt_tmp_width = (size.width() - BT_EDGE_X*2 - (cnt_per_line-1)*BT_GAP_X) / cnt_per_line;
 
     for (int num = 0; num < this->bt_cnt_now; num++) {
-        btn_list.at(num)->setGeometry(BT_EDGE_X + (bt_tmp_width    + BT_GAP_X) * (num%cnt_per_line)-10,\
+        btn_list.at(num)->setGeometry(BT_EDGE_X + (bt_tmp_width    + BT_GAP_X) * (num%cnt_per_line)-15,\
                                       BT_EDGE_Y + (this->bt_height + BT_GAP_Y) * (num/cnt_per_line),\
                                       bt_tmp_width ,this->bt_height);
     }
@@ -118,7 +142,6 @@ void MainWindow::flush_ui(int index)
 {
 
     this->section = settings->value("BaseInfo/tapname"+QString::number(index + 1)).toString();
-    this->bt_cnt_now = settings->value(this->section+"/cmdcnt").toInt();
     create_button();
     qDebug()<<"section:"<<this->section<< " bt_cnt_now:" << this->bt_cnt_now << endl;;
 }
@@ -137,7 +160,7 @@ void MainWindow::set_fixOnTop()
     this->show();
 }
 
-void MainWindow::creat_aboutWindows()
+void MainWindow::create_aboutWindows()
 {
     QMessageBox::information(this,"source code","https://github.com/Savior2016/commander\n"
                          "(github address already copy to the clipboard)\n"
@@ -168,9 +191,9 @@ void MainWindow::on_pushCmdButton_clicked()
     QPushButton *btn = qobject_cast<QPushButton*>(sender());
 
     /* Get the cmd key and value. */
-
-    QString btn_key = this->section + "/" + btn->objectName()+"_k";
-    QString btn_cmd = this->section + "/" + btn->objectName()+"_v";
+    QString prefix = QString("Tap") + QString::number(this->ui->tabWidget->currentIndex()+1) + "/";
+    QString btn_key = prefix + btn->objectName()+"_k";
+    QString btn_cmd = prefix + btn->objectName()+"_v";
 
     QString cmd_key = settings->value(btn_key).toString();
     QString cmd_value = settings->value(btn_cmd).toString();

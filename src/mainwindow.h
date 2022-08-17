@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QList>
+#include <QScrollArea>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -48,7 +49,7 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent *ev);
 
 private slots:
-    void creat_aboutWindows();
+    void create_aboutWindows();
     void set_Textedit_Visible();
     void set_fixOnTop();
     void on_horizontalSlider_sliderMoved(int position);
